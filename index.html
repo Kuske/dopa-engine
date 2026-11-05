@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f3f2ee">
+<meta name="robots" content="noindex, nofollow">
+<title>国試 一問一答 11/05</title>
+<script>
+// 白黒は端末ごとに 1 つ（どの日のファイルでも同じ）。決めていなければ端末の設定に合わせる
+(function () {
+  var t = null;
+  try { t = localStorage.getItem('ir-quiz:theme'); } catch (e) {}
+  if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f3f2ee;
+  --surface: #ffffff;
+  --ink: #1c1c1f;
+  --muted: #6b6b73;
+  --faint: #a2a2a9;
+  --line: #e3e1db;
+  --accent: #2d5bd7;
+  --chip-bg: #e8edfb;
+  --ok: #138a48;
+  --ok-soft: #e1f3e8;
+  --ng: #cf3b3b;
+  --ng-soft: #fbe6e6;
+  --learn: #c96a1f;
+  --supp-bg: #f5f4f0;
+  --shadow: 0 1px 2px rgba(20, 20, 30, .06), 0 8px 22px rgba(20, 20, 30, .09);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #121214;
+  --surface: #1e1e22;
+  --ink: #ececf1;
+  --muted: #a3a3ad;
+  --faint: #6c6c75;
+  --line: #2e2e34;
+  --accent: #8aa6ff;
+  --chip-bg: #262c41;
+  --ok: #43cf82;
+  --ok-soft: #16301f;
+  --ng: #ff7070;
+  --ng-soft: #3a1d1d;
+  --learn: #f0a560;
+  --supp-bg: #27272c;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .4);
+}
+* { box-sizing: border-box; }
+/* カードを画面の外へ飛ばすので、ページ自体はスクロールさせない */
+html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); color: var(--ink); overscroll-behavior: none; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+  -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+button { font: inherit; color: inherit; }
+b { font-weight: 800; }
+
+#app {
+  height: 100vh; height: 100dvh;
+  max-width: 520px; margin: 0 auto;
+  display: flex; flex-direction: column;
+  padding: calc(env(safe-area-inset-top) + 6px) 14px calc(env(safe-area-inset-bottom) + 12px);
+}
+header { display: flex; align-items: center; gap: 2px; margin-bottom: 8px; }
+.title { flex: 1; min-width: 0; font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.icon { width: 38px; height: 38px; border: 0; border-radius: 10px; background: transparent; color: var(--muted); display: grid; place-items: center; cursor: pointer; }
+.icon:disabled { opacity: .3; cursor: default; }
+.icon svg { width: 20px; height: 20px; }
+:root[data-theme="dark"] .i-moon, :root[data-theme="light"] .i-sun { display: none; }
+
+main { flex: 1; min-height: 0; position: relative; }
+/* 問題は上に固定し、答えは下の欄に出す（Anki と同じ。答えが出ても問題の位置は動かない） */
+.card {
+  position: absolute; inset: 0; border-radius: 18px; background: var(--surface); box-shadow: var(--shadow);
+  padding: 16px 18px 16px; display: flex; flex-direction: column; overflow: hidden;
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; cursor: pointer;
+  will-change: transform;
+}
+.card.enter { animation: enter .16s ease-out; }
+@keyframes enter { from { scale: .97; opacity: .5; } to { scale: 1; opacity: 1; } }
+.ghost { pointer-events: none; }
+.chip { align-self: flex-start; font-size: 11px; font-weight: 700; color: var(--accent); background: var(--chip-bg); padding: 3px 9px; border-radius: 999px; }
+.body { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px; padding: 14px 0 6px; }
+.q { font-size: calc(17px * var(--fit, 1)); line-height: 1.65; font-weight: 600; overflow-wrap: anywhere; }
+.ans { display: flex; flex-direction: column; gap: 12px; visibility: hidden; }
+.card.shown .ans { visibility: visible; }
+.rule { height: 1px; background: var(--line); }
+.a { font-size: calc(19px * var(--fit, 1)); line-height: 1.5; font-weight: 700; overflow-wrap: anywhere; }
+.s { font-size: calc(13.5px * var(--fit, 1)); line-height: 1.7; background: var(--supp-bg); border-radius: 10px; padding: 9px 12px; overflow-wrap: anywhere; }
+.s::before { content: "補足"; display: block; font-size: 10.5px; font-weight: 700; color: var(--muted); letter-spacing: .08em; margin-bottom: 2px; }
+.s:empty { display: none; }
+.tap { text-align: center; font-size: 12px; color: var(--faint); }
+.tap.nudge { color: var(--accent); font-weight: 700; }
+.stamp { position: absolute; top: 14px; z-index: 3; padding: 2px 10px; border: 2.5px solid currentColor; border-radius: 8px; font-size: 16px; font-weight: 800; opacity: 0; pointer-events: none; background: var(--surface); will-change: opacity; }
+.stamp.ok { left: 16px; color: var(--ok); }
+.stamp.ng { right: 16px; color: var(--ng); }
+
+.panel { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px; padding: 0 8px; }
+.panel[hidden] { display: none; }
+.clock { font-size: 44px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--learn); line-height: 1; }
+.lead { font-size: 14px; line-height: 1.7; color: var(--muted); margin: 0; }
+.big { font-size: 18px; font-weight: 800; margin: 0; }
+#donePanel { justify-content: flex-start; overflow-y: auto; padding-top: 16px; -webkit-overflow-scrolling: touch; }
+.score { font-size: 40px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.score small { font-size: 15px; color: var(--muted); font-weight: 600; }
+.missed { width: 100%; text-align: left; margin: 6px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.missed li { background: var(--surface); border-radius: 12px; padding: 10px 13px; box-shadow: var(--shadow); font-size: 13px; line-height: 1.6; }
+.missed .mq { color: var(--muted); }
+.missed .ma { font-weight: 700; }
+.missed .mn { float: right; font-size: 11.5px; color: var(--ng); font-weight: 700; margin-left: 8px; }
+.stack { display: grid; gap: 8px; width: 100%; }
+
+footer { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+footer[hidden] { display: none; }
+.btn { height: 48px; border: 0; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.btn small { font-size: 11.5px; font-weight: 500; opacity: .8; }
+.btn.wide { grid-column: 1 / -1; }
+.btn.dark { background: var(--ink); color: var(--bg); }
+.btn.ng { background: var(--ng-soft); color: var(--ng); }
+.btn.ok { background: var(--ok-soft); color: var(--ok); }
+.btn.plain { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.btn[hidden] { display: none; }
+
+.sheet { position: fixed; inset: 0; z-index: 10; background: rgba(0, 0, 0, .35); display: flex; align-items: flex-end; justify-content: center; }
+.sheet[hidden] { display: none; }
+.sheet > div {
+  width: 100%; max-width: 520px; max-height: 90%; overflow-y: auto; background: var(--bg); border-radius: 18px 18px 0 0;
+  padding: 20px 18px calc(env(safe-area-inset-bottom) + 16px);
+}
+.sheet h2 { font-size: 16px; margin: 0 0 12px; }
+.how { margin: 0 0 16px; padding: 0; list-style: none; display: grid; gap: 10px; font-size: 14px; line-height: 1.6; }
+.how li { display: flex; gap: 12px; align-items: flex-start; }
+.how .k { flex: none; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; font-weight: 800; background: var(--surface); box-shadow: var(--shadow); }
+.how .k.ok { color: var(--ok); }
+.how .k.ng { color: var(--ng); }
+.note { font-size: 12px; color: var(--muted); line-height: 1.6; margin: 12px 0 0; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="title">国試 一問一答 11/05</div>
+    <button class="icon" id="themeBtn" aria-label="白・黒の切り替え">
+      <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+      <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+    <button class="icon" id="undoBtn" aria-label="ひとつ戻す" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+    </button>
+    <button class="icon" id="menuBtn" aria-label="使い方とやり直し">
+      <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+    </button>
+  </header>
+
+  <main id="main">
+    <div class="card" id="card" role="button" aria-label="カード（タップで答え）">
+      <span class="chip" id="chip"></span>
+      <div class="body">
+        <div class="q" id="q"></div>
+        <div class="ans">
+          <div class="rule"></div>
+          <div class="a" id="a"></div>
+          <div class="s" id="s"></div>
+        </div>
+      </div>
+      <div class="tap" id="tapHint">タップで答え</div>
+      <div class="stamp ok" id="stampOk">覚えた</div>
+      <div class="stamp ng" id="stampNg">もう一度</div>
+    </div>
+
+    <div class="panel" id="waitPanel" hidden>
+      <div class="clock" id="clock">1:00</div>
+      <p class="lead" id="waitText"></p>
+      <button class="btn plain" id="nowBtn" style="padding:0 22px">待たずに今すぐ出す</button>
+    </div>
+
+    <div class="panel" id="donePanel" hidden>
+      <p class="big">ぜんぶ覚えました</p>
+      <div class="score" id="score"></div>
+      <p class="lead" id="doneText"></p>
+      <div class="stack">
+        <button class="btn ng" id="retryMissedBtn"></button>
+        <button class="btn plain" id="retryAllBtn">最初から全部</button>
+      </div>
+      <ul class="missed" id="missedList"></ul>
+    </div>
+  </main>
+
+  <footer id="footer">
+    <button class="btn dark wide" id="showBtn">答えを見る</button>
+    <button class="btn ng" id="ngBtn" hidden>× もう一度<small>1分後</small></button>
+    <button class="btn ok" id="okBtn" hidden>○ 覚えた</button>
+  </footer>
+</div>
+
+<div class="sheet" id="sheet" hidden>
+  <div role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <h2 id="sheetTitle">使い方</h2>
+    <ul class="how">
+      <li><span class="k">👆</span><span>カードを<b>タップ</b>すると、問題の下に答えが出ます。</span></li>
+      <li><span class="k ok">→</span><span>答えを見てから<b>右へスワイプ</b>＝覚えた。そのカードはもう出ません。</span></li>
+      <li><span class="k ng">←</span><span><b>左へスワイプ</b>＝もう一度。<b>1 分後</b>にまた出ます。正解するまで繰り返します。</span></li>
+      <li><span class="k">↶</span><span>スワイプを間違えたら右上の矢印で 1 枚ずつ戻せます。</span></li>
+    </ul>
+    <div class="stack">
+      <button class="btn dark" id="closeSheetBtn">はじめる</button>
+      <button class="btn plain" id="resetBtn">最初からやり直す</button>
+    </div>
+    <p class="note">下のボタンでも同じことができます。パソコンではスペースで答え、← → で判定、Z で戻す。<br>
+      進み具合はこの端末のブラウザに残ります（閉じても続きから）。プライベートブラウズでは残りません。</p>
+  </div>
+</div>
+
+<script>
+const CARDS = [{"id":"1793760820297","t":"消化管","q":"トロンボキサンA₂の主な作用は？","a":"血小板凝集","s":""},{"id":"1792791193140","t":"消化管","q":"胃の<b>固有筋層<\/b>の3層構造は（内側から）？","a":"内斜・中輪・外縦","s":""},{"id":"1793760820765","t":"肝胆膵","q":"<b>PBC<\/b>で自己免疫的に破壊される胆管はどこか？","a":"肝内の小葉間胆管","s":"小葉間門脈も炎症に巻き込まれやすいため肝硬変前から門脈圧亢進をきたす"},{"id":"1792791193609","t":"肝胆膵","q":"劇症肝炎の診断に必要な肝性脳症の昏睡度は？","a":"Ⅱ度以上","s":"肝炎起因で初発8週以内かつPT活性40%以下（PT-INR 1.5以上）を満たす必要がある"},{"id":"1791854256099","t":"循環器","q":"胸部X線正面像の右第2弓を形成するのは？","a":"右房","s":""},{"id":"1791855935928","t":"循環器","q":"サルコイドーシスは房室ブロックの原因となるか？","a":"なる","s":""},{"id":"1792791193779","t":"内分泌","q":"カプトプリル負荷試験における原発性アルドステロン症のアルドステロン・レニン反応は？","a":"変化なし","s":"正常ではACE阻害によりアルドステロン低下・レニン上昇を示す"},{"id":"1793760820925","t":"内分泌","q":"上甲状腺動脈の分岐元は？","a":"外頸動脈","s":"外頸動脈の第1枝"},{"id":"1792791187489","t":"腎臓","q":"尿細管性アシドーシス（RTA）にみられる酸塩基平衡異常は？","a":"高Cl性代謝性アシドーシス","s":""},{"id":"1793760821201","t":"腎臓","q":"ヘンレの上行脚での再吸収を阻害する疾患は？","a":"Bartter症候群","s":""},{"id":"1791855936309","t":"免疫","q":"Th1がマクロファージやNK細胞の活性化に用いるサイトカインは？","a":"IFN-γ","s":""},{"id":"1791855936313","t":"免疫","q":"Tregが免疫抑制に用いるサイトカインは？","a":"IL-10","s":""},{"id":"1791854256258","t":"血液","q":"ALLにおいてPh染色体は陽性と陰性のどちらが予後良好か？","a":"陰性","s":""},{"id":"1792791190904","t":"血液","q":"MDS（骨髄異形成症候群）の特徴的な病態は？","a":"無効造血","s":""},{"id":"1791855936458","t":"感染症","q":"インフルエンザ桿菌が原因となる代表的な喉頭疾患は？","a":"急性喉頭蓋炎","s":""},{"id":"1793760821460","t":"感染症","q":"<b>日本紅斑熱<\/b>を媒介する生物は？","a":"マダニ","s":"ツツガムシは小さなダニ、マダニは大きなダニ"},{"id":"1791855936583","t":"呼吸器","q":"喘息発作の誘因・増悪因子で最多なのは？","a":"ウイルス感染","s":""},{"id":"1792791191217","t":"呼吸器","q":"Hb中の鉄イオンが酸化されて3価になったものは？","a":"Met Hb（メトヘモグロビン）","s":""},{"id":"1791854256585","t":"神経","q":"中枢神経系原発悪性リンパ腫の確定診断法は？","a":"定位的脳腫瘍生検術","s":"診断目的の手術であり診断がつけばそれ以上の摘出は不要"},{"id":"1793760821974","t":"神経","q":"<b>両側性<\/b>の症状を示すTIAで疑う血管系は？","a":"椎骨脳底動脈系","s":"片側性では内頸動脈系・椎骨脳底動脈系の両方が考えられる（脳幹で左右の錐体路が近接するため椎骨脳底動脈系でも両側性になりうる）"},{"id":"1792791187788","t":"中毒・救急","q":"<b>有機リン中毒<\/b>や<b>サリン中毒<\/b>で阻害される酵素は？","a":"ChE","s":"有機リンは農薬などに含まれ、VXガス中毒でも同様の病態となる ChE阻害薬が治療薬となる疾患には神経因性膀胱による尿閉、重症筋無力症、機能性ディスペプシアがある"},{"id":"1791855936826","t":"麻酔","q":"局所麻酔薬へのアドレナリン添加で麻酔時間延長や中毒予防が得られる機序は？","a":"局所の血管収縮","s":""},{"id":"1791855936827","t":"麻酔","q":"局所麻酔薬へのアドレナリン添加が禁忌となる部位は？","a":"亀頭","s":"耳介・指先は禁忌ではなく慎重投与"},{"id":"1791854256728","t":"老年","q":"せん妄の不眠対応に用いられるメラトニン受容体作動薬は？","a":"ラメルテオン","s":"ロゼレム®のこと。<br>※デエビゴ®はレンボレキサント"},{"id":"1791854256865","t":"小児","q":"<b>Down症候群<\/b>に合併しやすい先天性心疾患は？","a":"房室中隔欠損症（AVSD）","s":""},{"id":"1791854257032","t":"小児","q":"神経芽腫で増幅すると予後不良となる遺伝子は？","a":"MYCN遺伝子","s":""},{"id":"1790431788324","t":"乳腺","q":"乳房Paget病の病理像で認める特徴的な細胞は何か？","a":"淡明なPaget細胞","s":""},{"id":"1792791188159","t":"産婦人科","q":"早産の定義となる時期は？","a":"妊娠22週〜37週未満","s":""},{"id":"1791762895319","t":"産婦人科","q":"Asherman症候群の治療法は？","a":"手術（癒着剥離）","s":""},{"id":"1792791186727","t":"眼科","q":"高血圧性網膜症では認めず、糖尿病網膜症でみられる血管病変は？","a":"毛細血管瘤","s":""},{"id":"1792791188314","t":"眼科","q":"<b>近視<\/b>における焦点の位置は？","a":"網膜の前","s":""},{"id":"1792791188590","t":"耳鼻咽喉科","q":"Ménière病の本態は？","a":"内リンパ水腫","s":"めまいの特徴は繰り返す回転性めまい"},{"id":"1793760820012","t":"耳鼻咽喉科","q":"下咽頭癌の好発部位は？","a":"梨状陥凹","s":""},{"id":"1791855937362","t":"整形","q":"偽痛風の原因物質は？","a":"ピロリン酸カルシウム","s":""},{"id":"1791855937364","t":"整形","q":"偽痛風の関節液中に認める結晶の形態は？","a":"菱形","s":""},{"id":"1792791191820","t":"精神科","q":"不安障害（神経症全般）の基本となる治療薬は？","a":"SSRI","s":"効果発現までに時間がかかる"},{"id":"1791854258030","t":"精神科","q":"臨床的に最も診断頻度が高いパーソナリティ障害は？","a":"境界性パーソナリティ障害","s":""},{"id":"1792791192121","t":"皮膚科","q":"色素性蕁麻疹の病変部を機械的刺激すると膨疹が生じる現象は？","a":"Darier徴候","s":"Darier病は脂漏部位に角化性丘疹が多発する遺伝病であり、Darier徴候とは関係ない"},{"id":"1792791192122","t":"皮膚科","q":"小児型色素性蕁麻疹の転帰は？","a":"自然軽快","s":""},{"id":"1792791188731","t":"泌尿器科","q":"精巣炎が合併症として好発する疾患は？","a":"思春期以降の流行性耳下腺炎","s":"合併率は約20〜30%"},{"id":"1791855937601","t":"泌尿器科","q":"陰茎癌の好発組織型は？","a":"扁平上皮癌","s":""},{"id":"1791855937863","t":"放射線","q":"ICRP原則における「正当化」の判断基準は？","a":"メリットがデメリットを上回ること","s":""},{"id":"1791855937865","t":"放射線","q":"線量限度が適用されない被曝は？","a":"医療被曝","s":""},{"id":"1792791192612","t":"公衆衛生","q":"X線写真や手術記録などの保存期間は？","a":"2年","s":""},{"id":"1793760823906","t":"公衆衛生","q":"介護老人保健施設と介護老人福祉施設のうち、<b>家庭復帰<\/b>を目標にしているのはどちら？","a":"介護老人保健施設","s":"介護老人福祉施設は特別養護老人「ホーム」のため生活の場"},{"id":"1791854260530","t":"必修","q":"ヘルシンキ宣言（1964年）の主題は？","a":"医学研究の倫理原則","s":""},{"id":"1791854260531","t":"必修","q":"医療倫理において患者のために最善をつくす原則は？","a":"善行","s":""},{"id":"1791855935804","t":"皮膚科","q":"Köbner現象が陽性となる代表的な角化症は？（2つ）","a":"乾癬・扁平苔癬","s":"健常皮膚への機械的刺激により同様の皮疹を生じる現象"},{"id":"1792791189833","t":"免疫","q":"二次リンパ組織（3つ）は？","a":"脾臓・リンパ節・MALT（粘膜関連リンパ組織）","s":"免疫応答の場である"},{"id":"1792791187059","t":"整形","q":"腰椎穿刺で針が通過する靭帯の順序は？（外側から3つ）","a":"棘上靭帯→棘間靭帯→黄色靭帯","s":""}];
+const KEY = 'ir-quiz:2026-11-05-50';
+const LEARN_MS = 60 * 1000;
+const byId = {};
+CARDS.forEach(c => { byId[c.id] = c; });
+
+const $ = id => document.getElementById(id);
+const card = $('card');
+
+const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* 残せなくても動く */ } },
+};
+
+function shuffle(a) {
+  a = a.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function fresh(ids) {
+  const st = {};
+  ids.forEach(id => { st[id] = { s: 'new', due: 0, miss: 0 }; });
+  return { order: shuffle(ids), st, cur: null };
+}
+
+let S = store.get(KEY);
+if (!S || !Array.isArray(S.order) || !S.order.length || !S.order.every(id => byId[id] && S.st && S.st[id])) {
+  S = fresh(CARDS.map(c => c.id));
+}
+const save = () => store.set(KEY, S);
+
+let shown = false, mode = 'card', waitTimer = null, drag = null;
+let pos = { x: 0, y: 0, r: 0 };
+const undoStack = [];
+
+// --- 白・黒 ---
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  document.querySelector('meta[name="theme-color"]').content = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+}
+setTheme(document.documentElement.getAttribute('data-theme'));
+$('themeBtn').onclick = () => {
+  const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  setTheme(t);
+  try { localStorage.setItem('ir-quiz:theme', t); } catch (e) {}
+};
+
+function learning() { return S.order.filter(id => S.st[id].s === 'learn').length; }
+
+// 次に出すカード：1 分たった「もう一度」→ 未出題 → （無ければ）待つ → 終わり
+function next() {
+  const now = Date.now();
+  let due = null, soon = null;
+  S.order.forEach(id => {
+    const c = S.st[id];
+    if (c.s !== 'learn') return;
+    if (c.due <= now) { if (!due || c.due < S.st[due].due) due = id; }
+    else if (!soon || c.due < S.st[soon].due) soon = id;
+  });
+  if (due) return { id: due };
+  const nw = S.order.find(id => S.st[id].s === 'new');
+  if (nw) return { id: nw };
+  if (soon) return { wait: S.st[soon].due - now };
+  return { done: true };
+}
+
+function setMode(m) {
+  mode = m;
+  card.hidden = m !== 'card';
+  $('footer').hidden = m !== 'card';
+  $('waitPanel').hidden = m !== 'wait';
+  $('donePanel').hidden = m !== 'done';
+  $('undoBtn').disabled = !undoStack.length;
+}
+
+function fill(id) {
+  const c = byId[id];
+  $('chip').textContent = c.t;
+  $('q').innerHTML = c.q;
+  $('a').innerHTML = c.a;
+  $('s').innerHTML = c.s || '';
+  fit();
+}
+
+// 長いカードは字を小さくして 1 枚に収める（カードの中はスクロールさせない。スワイプとぶつかるので）。
+// 答えは見えなくても場所を取っているので、答えを出したときに字の大きさは変わらない
+function fit() {
+  let f = 1;
+  card.style.setProperty('--fit', f);
+  while (card.scrollHeight > card.clientHeight + 1 && f > 0.7) {
+    f -= 0.04;
+    card.style.setProperty('--fit', f.toFixed(2));
+  }
+}
+
+function setShown(v) {
+  shown = v;
+  card.classList.toggle('shown', v);
+  const h = $('tapHint');
+  h.classList.remove('nudge');
+  h.textContent = v ? '← もう一度　　覚えた →' : 'タップで答え';
+  $('showBtn').hidden = v;
+  $('ngBtn').hidden = $('okBtn').hidden = !v;
+}
+
+function place(el, x, y, r, o) {
+  el.style.transform = (x || y || r) ? `translate3d(${x}px, ${y}px, 0) rotate(${r}deg)` : '';
+  el.style.opacity = o == null ? '' : o;
+}
+function stamps(dx, w) {
+  const p = Math.min(Math.abs(dx) / threshold(w), 1);
+  $('stampOk').style.opacity = dx > 0 ? p : 0;
+  $('stampNg').style.opacity = dx < 0 ? p : 0;
+}
+const threshold = w => Math.min(80, w * 0.22);
+function resetPos(animate) {
+  card.style.transition = animate ? 'transform .14s ease-out' : 'none';
+  pos = { x: 0, y: 0, r: 0 };
+  place(card, 0, 0, 0);
+  stamps(0, 1);
+}
+
+function show(opts) {
+  opts = opts || {};
+  clearInterval(waitTimer);
+  let id = (S.cur && S.st[S.cur] && S.st[S.cur].s !== 'done') ? S.cur : null;
+  if (!id) {
+    const r = next();
+    if (r.done) return showDone();
+    if (r.wait != null) return showWait();
+    id = r.id;
+  }
+  S.cur = id;
+  save();
+  setMode('card');
+  resetPos(false);
+  setShown(!!opts.shown);
+  fill(id);
+  if (opts.enter) { card.classList.remove('enter'); void card.offsetWidth; card.classList.add('enter'); }
+}
+
+// 指で払ったカードは写しを画面の外へ飛ばし、その下に次のカードをすぐ出す（飛んでいる間も次を触れる）
+function flyOut(ok) {
+  const g = card.cloneNode(true);
+  g.removeAttribute('id');
+  g.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
+  g.classList.remove('enter');
+  g.classList.add('ghost');
+  g.style.transition = 'none';
+  $('main').appendChild(g);
+  g.getBoundingClientRect();
+  const dist = (ok ? 1 : -1) * (window.innerWidth * 0.8 + 120);
+  g.style.transition = 'transform .2s cubic-bezier(.25,.8,.4,1), opacity .2s ease-in';
+  place(g, pos.x + dist, pos.y, pos.r + (ok ? 10 : -10), 0);
+  setTimeout(() => g.remove(), 240);
+}
+
+// swiped: 指で払ったときだけ飛ばす。ボタン・キーではそのまま次へ
+function judge(ok, swiped) {
+  if (!shown || !S.cur || mode !== 'card') return;
+  const id = S.cur;
+  undoStack.push({ id, prev: Object.assign({}, S.st[id]) });
+  if (undoStack.length > 100) undoStack.shift();
+  const c = S.st[id];
+  if (ok) c.s = 'done';
+  else { c.s = 'learn'; c.due = Date.now() + LEARN_MS; c.miss++; }
+  S.cur = null;
+  save();
+  if (navigator.vibrate) { try { navigator.vibrate(ok ? 8 : [8, 40, 8]); } catch (e) {} }
+  if (swiped) flyOut(ok);
+  show({ enter: swiped });
+}
+
+function undo() {
+  const u = undoStack.pop();
+  if (!u) return;
+  S.st[u.id] = u.prev;
+  S.cur = u.id;
+  save();
+  show({ shown: true });
+}
+
+function showWait() {
+  setMode('wait');
+  const tick = () => {
+    const r = next();
+    if (r.wait == null) { clearInterval(waitTimer); show(); return; }
+    const sec = Math.ceil(r.wait / 1000);
+    $('clock').textContent = Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+    $('waitText').innerHTML = `「もう一度」にしたカードが <b>${learning()} 枚</b>あります。<br>1 分たったら出します。`;
+  };
+  tick();
+  waitTimer = setInterval(tick, 250);
+}
+
+function esc(s) { const d = document.createElement('div'); d.innerHTML = s; return d.textContent; }
+
+function showDone() {
+  setMode('done');
+  const total = S.order.length;
+  const missed = S.order.filter(id => S.st[id].miss > 0);
+  const first = total - missed.length;
+  $('score').innerHTML = `${first}<small> / ${total}</small>`;
+  $('doneText').textContent = missed.length
+    ? `1 回目で正解 ${Math.round(100 * first / total)}%。間違えたのは下の ${missed.length} 問です。`
+    : '全部 1 回目で正解しました。';
+  const rb = $('retryMissedBtn');
+  rb.hidden = !missed.length;
+  rb.textContent = `間違えた ${missed.length} 問だけもう一度`;
+  const ul = $('missedList');
+  ul.innerHTML = '';
+  missed.sort((a, b) => S.st[b].miss - S.st[a].miss).forEach(id => {
+    const c = byId[id], li = document.createElement('li');
+    li.innerHTML = `<span class="mn">×${S.st[id].miss}</span><div class="mq"></div><div class="ma"></div>`;
+    li.querySelector('.mq').textContent = esc(c.q);
+    li.querySelector('.ma').textContent = esc(c.a);
+    ul.appendChild(li);
+  });
+  $('donePanel').scrollTop = 0;
+}
+
+function restart(ids) {
+  S = fresh(ids);
+  undoStack.length = 0;
+  save();
+  show();
+}
+
+// --- スワイプ（答えを出したあとだけ。出す前に払ったら「タップで答え」を目立たせる） ---
+// 払ったかどうかは最後の 100ms の速さで見る（押してから離すまでの平均だと、ためてから払ったときに鈍い）
+card.addEventListener('pointerdown', e => {
+  if (mode !== 'card' || (e.pointerType === 'mouse' && e.button !== 0)) return;
+  const t = performance.now();
+  drag = { x: e.clientX, y: e.clientY, dx: 0, dy: 0, moved: false, w: card.offsetWidth, hist: [[t, e.clientX]] };
+  try { card.setPointerCapture(e.pointerId); } catch (err) {}
+  card.style.transition = 'none';
+});
+card.addEventListener('pointermove', e => {
+  if (!drag) return;
+  drag.dx = e.clientX - drag.x;
+  drag.dy = e.clientY - drag.y;
+  if (!drag.moved && Math.abs(drag.dx) + Math.abs(drag.dy) > 8) drag.moved = true;
+  const t = performance.now();
+  drag.hist.push([t, e.clientX]);
+  while (drag.hist.length > 2 && t - drag.hist[0][0] > 100) drag.hist.shift();
+  if (!shown) return;
+  pos = { x: drag.dx, y: drag.dy * 0.15, r: drag.dx / 28 };
+  place(card, pos.x, pos.y, pos.r);
+  stamps(drag.dx, drag.w);
+});
+function endDrag(cancelled) {
+  if (!drag) return;
+  const d = drag;
+  drag = null;
+  if (cancelled) { resetPos(true); return; }
+  if (!d.moved) { if (!shown) setShown(true); return; }
+  if (!shown) { $('tapHint').classList.add('nudge'); return; }
+  const h0 = d.hist[0], h1 = d.hist[d.hist.length - 1];
+  const v = (h1[1] - h0[1]) / Math.max(1, h1[0] - h0[0]);      // px/ms、符号つき
+  const flick = Math.abs(v) > 0.35 && Math.abs(d.dx) > 30 && Math.sign(v) === Math.sign(d.dx);
+  if (Math.abs(d.dx) > threshold(d.w) || flick) judge(d.dx > 0, true);
+  else resetPos(true);
+}
+card.addEventListener('pointerup', () => endDrag(false));
+card.addEventListener('pointercancel', () => endDrag(true));
+
+// --- ボタン・キー ---
+$('showBtn').onclick = () => setShown(true);
+$('ngBtn').onclick = () => judge(false, false);
+$('okBtn').onclick = () => judge(true, false);
+$('undoBtn').onclick = undo;
+$('nowBtn').onclick = () => {
+  const now = Date.now();
+  S.order.forEach(id => { if (S.st[id].s === 'learn') S.st[id].due = Math.min(S.st[id].due, now); });
+  save();
+  show();
+};
+$('retryMissedBtn').onclick = () => restart(S.order.filter(id => S.st[id].miss > 0));
+$('retryAllBtn').onclick = () => restart(CARDS.map(c => c.id));
+
+const sheet = $('sheet');
+const openSheet = first => {
+  $('closeSheetBtn').textContent = first ? 'はじめる' : '閉じる';
+  $('resetBtn').hidden = !!first;
+  sheet.hidden = false;
+};
+const closeSheet = () => { sheet.hidden = true; store.set('ir-quiz:seen', 1); };
+$('menuBtn').onclick = () => openSheet(false);
+$('closeSheetBtn').onclick = closeSheet;
+sheet.addEventListener('click', e => { if (e.target === sheet) closeSheet(); });
+$('resetBtn').onclick = () => {
+  if (!confirm('進み具合を消して、最初からやり直しますか？')) return;
+  closeSheet();
+  restart(CARDS.map(c => c.id));
+};
+
+document.addEventListener('keydown', e => {
+  if (!sheet.hidden) { if (e.key === 'Escape') closeSheet(); return; }
+  if (e.target.tagName === 'BUTTON' && (e.key === ' ' || e.key === 'Enter')) return;   // ボタン自身の押下に任せる
+  if (e.key === 'z' || e.key === 'Z' || e.key === 'Backspace') { e.preventDefault(); undo(); return; }
+  if (mode !== 'card') return;
+  if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setShown(true); }
+  else if (!shown) return;
+  else if (e.key === 'ArrowRight' || e.key === '3') judge(true, false);
+  else if (e.key === 'ArrowLeft' || e.key === '1') judge(false, false);
+});
+let rt;
+window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (mode === 'card') fit(); }, 120); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden && mode === 'wait') show(); });
+
+show();
+if (!store.get('ir-quiz:seen') && !store.get(KEY + ':seen')) openSheet(true);
+</script>
+</body>
+</html>
